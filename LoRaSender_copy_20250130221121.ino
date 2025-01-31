@@ -87,6 +87,15 @@ std::string GPStoStr(const std::string& nmea) {
         return returnval.str();
       }
       return "Invalid GNRMC";
+    } else if (issatc(nmea, "$GNGLL")) {
+      double latestLat, latestLon;
+      if (parseGNGLL(nmea, &latestLat, &latestLon)) {
+        std::ostringstream returnval;
+        returnval << "lat:" << std::fixed << std::setprecision(8) << latestLat
+                  << ";lon:" << std::fixed << std::setprecision(8) << latestLon;
+        return returnval.str();
+      }
+      return "Invalid GNGLL";
     } else if (issatc(nmea, "$GPGSV")) {
       return nmea;
     } else if (issatc(nmea, "$GLGSV")) {

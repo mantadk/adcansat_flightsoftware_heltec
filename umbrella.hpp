@@ -41,3 +41,4 @@ std::string readLineFromSerial();
 bool issatc(const std::string& sentence, const std::string& which);
 
 bool parseGNRMC(const std::string& gnrmc, double* latitude, double* longitude, double* speed, double* direction);
+bool parseGNGLL(const std::string& gngll, double* latitude, double* longitude);
