@@ -89,11 +89,15 @@ std::string GPStoStr(std::string nmea) {
       }
       return "Invalid GNRMC";
     }
-    if (issatc(nmea, "$GPGSV")) {
-      latestGPGSV = nmea;
+    else if (issatc(nmea, "$GPGSV")) {
+      return nmea;
     }
-    if (issatc(nmea, "$GLGSV")) {
-      latestGLGSV = nmea;
+    else if (issatc(nmea, "$GLGSV")) {
+      return nmea;
+    }
+    else
+    {
+      return "Invalid Serial Reading";
     }
   }
   return "No GPS";
