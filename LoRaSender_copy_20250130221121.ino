@@ -87,6 +87,7 @@ std::string GPStoStr(std::string nmea) {
                   << ";dir:" << static_cast<int>(std::round(latestDir));
         return returnval.str();
       }
+      return "Invalid GNRMC";
     }
     if (issatc(nmea, "$GPGSV")) {
       latestGPGSV = nmea;
