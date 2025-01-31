@@ -119,17 +119,22 @@ std::string GPStoStr(const std::string& nmea) {
         return returnval.str();
       }
       return "Invalid GNGGA";
-    } else if (issatc(nmea, "$GNGSA")) {
-
     } else if (issatc(nmea, "$GNTXT")) {
-
+      std::string msg;
+      if (parseGNTXT(nmea, &msg))
+      {
+        return "msg:"+msg;
+      }
+      return "Invalid GNTXT";
+    } else if (issatc(nmea, "$GNGSA")) {
+      return "NP-GNGSA";
     } else if (issatc(nmea, "$GPGSV") + issatc(nmea, "$GNGSV") + issatc(nmea, "$GLGSV")) {
-      return "SV;NP";
+      return "NP-GXGSV";
     } else {
       return "Not NMEA:" + nmea;
     }
   }
-  return "No NMEA";
+  return "No Data";
 }
 std::string latestreading = "";
 void loop() {

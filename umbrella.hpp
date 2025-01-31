@@ -43,3 +43,4 @@ bool parseGNRMC(const std::string& gnrmc, double* latitude, double* longitude, d
 bool parseGNGLL(const std::string& gngll, double* latitude, double* longitude);
 bool parseGNVTG(const std::string& gnvtg, double* course, double* speed);
 bool parseGNGGA(const std::string& gngga, double* latitude, double* longitude, double* altitude, int* numSatellites);
+bool parseGNTXT(const std::string& gntxt, std::string* messageContent)

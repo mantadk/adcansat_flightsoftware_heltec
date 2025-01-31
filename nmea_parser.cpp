@@ -205,3 +205,21 @@ bool parseGNGGA(const std::string& gngga, double* latitude, double* longitude, d
 
     return true;  // Successfully parsed
 }
+
+bool parseGNTXT(const std::string& gntxt, std::string* messageContent) {
+    std::istringstream stream(gntxt);
+    std::string field;
+    int fieldIndex = 0;
+
+    // Iterate through the comma-separated fields
+    while (std::getline(stream, field, ',')) {
+        fieldIndex++;
+        // Extract the content from the fifth field (message content)
+        if (fieldIndex == 5) {
+            *messageContent = field;  // Correctly use the pointer to update the content
+            return true;  // Successfully parsed the message content
+        }
+    }
+
+    return false;  // Failed to parse message content
+}
