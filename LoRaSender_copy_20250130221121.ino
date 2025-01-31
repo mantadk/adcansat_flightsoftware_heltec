@@ -76,32 +76,53 @@ void drawFreq() {
 std::string GPStoStr(const std::string& nmea) {
   if (!nmea.empty()) {
     if (issatc(nmea, "$GNRMC")) {
-      double latestLat, latestLon, latestSpeed, latestDir;
-      if (parseGNRMC(nmea, &latestLat, &latestLon, &latestSpeed, &latestDir)) {
-        knotsToMps(&latestSpeed);
+      double lat, lon, spd, cog;
+      if (parseGNRMC(nmea, &lat, &lon, &spd, &cog)) {
+        knotsToMps(&spd);
         std::ostringstream returnval;
-        returnval << "lat:" << std::fixed << std::setprecision(8) << latestLat
-                  << ";lon:" << std::fixed << std::setprecision(8) << latestLon
-                  << ";spd:" << std::fixed << std::setprecision(2) << latestSpeed
-                  << ";dir:" << static_cast<int>(std::round(latestDir));
+        returnval << "lat:" << std::fixed << std::setprecision(8) << lat
+                  << ";lon:" << std::fixed << std::setprecision(8) << lon
+                  << ";spd:" << std::fixed << std::setprecision(2) << spd
+                  << ";cog:" << static_cast<int>(std::round(cog));
         return returnval.str();
       }
       return "Invalid GNRMC";
     } else if (issatc(nmea, "$GNGLL")) {
-      double latestLat, latestLon;
-      if (parseGNGLL(nmea, &latestLat, &latestLon)) {
+      double lat, lon;
+      if (parseGNGLL(nmea, &lat, &lon)) {
         std::ostringstream returnval;
-        returnval << "lat:" << std::fixed << std::setprecision(8) << latestLat
-                  << ";lon:" << std::fixed << std::setprecision(8) << latestLon;
+        returnval << "lat:" << std::fixed << std::setprecision(8) << lat
+                  << ";lon:" << std::fixed << std::setprecision(8) << lon;
         return returnval.str();
       }
       return "Invalid GNGLL";
-    } else if (issatc(nmea, "$GPGSV")) {
-      return nmea;
-    } else if (issatc(nmea, "$GLGSV")) {
-      return nmea;
-    } else if (issatc(nmea, "$GNGSV")) {
-      return nmea;
+
+    } else if (issatc(nmea, "$GNVTG")) {
+      double cog, spd;
+      if (parseGNGLL(nmea, &cog, &spd)) {
+        knotsToMps(&spd);
+        std::ostringstream returnval;
+        returnval << "cog:" << std::fixed << std::setprecision(8) << cog
+                  << ";spd:" << std::fixed << std::setprecision(8) << spd;
+        return returnval.str();
+      }
+      return "Invalid GNVTG";
+    } else if (issatc(nmea, "$GNGGA")) {
+      double lat, lon, alt, cnt;
+      if (bool parseGNGGA(nmea, &lat, &lon, &alt, &cnt)) {
+        returnval << "lat:" << std::fixed << std::setprecision(8) << lat
+                  << ";lon:" << std::fixed << std::setprecision(8) << lon
+                  << ";alt:" << std::fixed << std::setprecision(2) << alt
+                  << ";cnt:" << cnt;
+        return returnval.str();
+      }
+      return "Invalid GNGGA";
+    } else if (issatc(nmea, "$GNGSA")) {
+
+    } else if (issatc(nmea, "$GNTXT")) {
+
+    } else if (issatc(nmea, "$GPGSV") + issatc(nmea, "$GNGSV") + issatc(nmea, "$GLGSV")) {
+      return "SV;NP";
     } else {
       return "Not NMEA:" + nmea;
     }

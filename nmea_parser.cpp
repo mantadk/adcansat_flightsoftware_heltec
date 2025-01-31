@@ -115,3 +115,93 @@ bool parseGNGLL(const std::string& gngll, double* latitude, double* longitude) {
 
   return true;  // Successfully parsed
 }
+
+bool parseGNVTG(const std::string& gnvtg, double* course, double* speed) {
+    std::istringstream stream(gnvtg);
+    std::string field;
+    int fieldIndex = 0;
+
+    while (std::getline(stream, field, ',')) {
+        fieldIndex++;
+        switch (fieldIndex) {
+            case 1:  // Course Over Ground (COG) in degrees
+                try {
+                    *course = std::stod(field);
+                } catch (...) {
+                    return false;  // Error in conversion
+                }
+                break;
+            case 5:  // Speed Over Ground (SOG) in knots
+                try {
+                    *speed = std::stod(field);
+                } catch (...) {
+                    return false;  // Error in conversion
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    return true;  // Successfully parsed
+}
+
+bool parseGNGGA(const std::string& gngga, double* latitude, double* longitude, double* altitude, int* numSatellites) {
+    std::istringstream stream(gngga);
+    std::string field;
+    int fieldIndex = 0;
+
+    while (std::getline(stream, field, ',')) {
+        fieldIndex++;
+        switch (fieldIndex) {
+            case 2:  // Latitude field
+                try {
+                    // Latitude in DDMM.MMMM format (degrees and minutes)
+                    double latDegrees = std::stod(field.substr(0, 2));
+                    double latMinutes = std::stod(field.substr(2));
+                    *latitude = latDegrees + (latMinutes / 60.0);
+                } catch (...) {
+                    return false;  // Error in conversion
+                }
+                break;
+            case 3:  // Latitude direction (N/S)
+                if (field == "S") {
+                    *latitude = -*latitude;  // Change sign for south
+                }
+                break;
+            case 4:  // Longitude field
+                try {
+                    // Longitude in DDDMM.MMMM format (degrees and minutes)
+                    double lonDegrees = std::stod(field.substr(0, 3));
+                    double lonMinutes = std::stod(field.substr(3));
+                    *longitude = lonDegrees + (lonMinutes / 60.0);
+                } catch (...) {
+                    return false;  // Error in conversion
+                }
+                break;
+            case 5:  // Longitude direction (E/W)
+                if (field == "W") {
+                    *longitude = -*longitude;  // Change sign for west
+                }
+                break;
+            case 7:  // Number of satellites in use
+                try {
+                    *numSatellites = std::stoi(field);
+                } catch (...) {
+                    return false;  // Error in conversion
+                }
+                break;
+            case 9:  // Altitude field (in meters)
+                try {
+                    *altitude = std::stod(field);
+                } catch (...) {
+                    return false;  // Error in conversion
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    return true;  // Successfully parsed
+}
