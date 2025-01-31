@@ -86,7 +86,7 @@ std::string GPStoStr(const std::string& nmea) {
                   << ";cog:" << static_cast<int>(std::round(cog));
         return returnval.str();
       }
-      return "Invalid GNRMC";
+      return "Invalid GNRMC;" + nmea;
     } else if (issatc(nmea, "$GNGLL")) {
       double lat, lon;
       if (parseGNGLL(nmea, &lat, &lon)) {
@@ -95,7 +95,7 @@ std::string GPStoStr(const std::string& nmea) {
                   << ";lon:" << std::fixed << std::setprecision(8) << lon;
         return returnval.str();
       }
-      return "Invalid GNGLL";
+      return "Invalid GNGLL;" + nmea;
 
     } else if (issatc(nmea, "$GNVTG")) {
       double cog, spd;
@@ -106,7 +106,7 @@ std::string GPStoStr(const std::string& nmea) {
                   << ";spd:" << std::fixed << std::setprecision(8) << spd;
         return returnval.str();
       }
-      return "Invalid GNVTG";
+      return "Invalid GNVTG;" + nmea;
     } else if (issatc(nmea, "$GNGGA")) {
       double lat, lon, alt;
       int cnt;
@@ -118,20 +118,20 @@ std::string GPStoStr(const std::string& nmea) {
                   << ";cnt:" << cnt;
         return returnval.str();
       }
-      return "Invalid GNGGA";
+      return "Invalid GNGGA;" + nmea;
     } else if (issatc(nmea, "$GNTXT")) {
       std::string msg;
       if (parseGNTXT(nmea, &msg))
       {
         return "msg:"+msg;
       }
-      return "Invalid GNTXT";
+      return "Invalid GNTXT;" + nmea;
     } else if (issatc(nmea, "$GNGSA")) {
       return "NP-GNGSA";
     } else if (issatc(nmea, "$GPGSV") + issatc(nmea, "$GNGSV") + issatc(nmea, "$GLGSV")) {
       return "NP-GXGSV";
     } else {
-      return "Not NMEA:" + nmea;
+      return "Not NMEA;" + nmea;
     }
   }
   return "No Data";
