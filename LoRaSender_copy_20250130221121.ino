@@ -24,22 +24,21 @@ void setup() {
   delay(1000);
 
   Mcu.begin(HELTEC_BOARD, SLOW_CLK_TPYE);
-
   txNumber = 0;
-
   RadioEvents.TxDone = OnTxDone;
   RadioEvents.TxTimeout = OnTxTimeout;
-
   Radio.Init(&RadioEvents);
   Radio.SetChannel(RF_FREQUENCY);
   Radio.SetTxConfig(MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
                     LORA_SPREADING_FACTOR, LORA_CODINGRATE,
                     LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
                     true, 0, 0, LORA_IQ_INVERSION_ON, 3000);
+
   VextON();
   delay(1000);
   display.init();
   delay(1000);
+
   startQueueingTask();
   delay(1000);
 }
@@ -74,7 +73,7 @@ void drawFreq() {
   display.drawString(0, 44, latestMessage.c_str());
 }
 
-std::string GPStoStr(std::string nmea) {
+std::string GPStoStr(const std::string& nmea) {
   if (!nmea.empty()) {
     if (issatc(nmea, "$GNRMC")) {
       double latestLat, latestLon, latestSpeed, latestDir;
@@ -88,18 +87,12 @@ std::string GPStoStr(std::string nmea) {
         return returnval.str();
       }
       return "Invalid GNRMC";
-    }
-    else if (issatc(nmea, "$GPGSV")) {
+    } else if (issatc(nmea, "$GPGSV")) {
       return nmea;
-    }
-    else if (issatc(nmea, "$GLGSV")) {
+    } else if (issatc(nmea, "$GLGSV")) {
       return nmea;
-    }
-    else
-    {
-      display.setFont(ArialMT_Plain_10);
-      display.drawString(0, 24, nmea.c_str());
-      return "Not NMEA";
+    } else {
+      return "Not NMEA:" + nmea;
     }
   }
   return "No NMEA";
@@ -107,6 +100,8 @@ std::string GPStoStr(std::string nmea) {
 
 void loop() {
   std::string dataJustRead = readLineFromSerial();
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(0, 24, dataJustRead.c_str());
   if (dataJustRead != "")
     SENDDATA(GPStoStr(dataJustRead));
   display.clear();
