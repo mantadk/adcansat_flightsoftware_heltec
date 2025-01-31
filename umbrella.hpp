@@ -37,3 +37,7 @@
 
 
 std::string readLineFromSerial();
+
+
+bool isgnrmc(std::string sentence);
+bool issatc(std::string sentence, std::string which);
