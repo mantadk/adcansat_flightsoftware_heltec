@@ -123,7 +123,7 @@ std::string GPStoStr(std::string nmea) {
 void loop() {
   std::string dataJustRead = readLineFromSerial();
   if (dataJustRead != "")
-    SENDDATA(GPStoStr(dataJustRead));
+    SENDDATA(dataJustRead);
   display.clear();
   drawFreq();
   display.setFont(ArialMT_Plain_10);
@@ -298,12 +298,3 @@ void startQueueingTask() {
     1                // Core to run on
   );
 }
-
-// void SENDDATA(std::string datatosend) {
-//   if (lora_idle == true) {
-//     txNumber += 0.01;
-//     sprintf(txpacket, "%d - %s", txNumber, datatosend.c_str());       //start a package
-//     Radio.Send((uint8_t*)txpacket, strlen(txpacket));  //send the package out
-//     lora_idle = false;
-//   }
-// }
