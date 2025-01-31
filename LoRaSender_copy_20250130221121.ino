@@ -91,7 +91,7 @@ void drawFreq() {
 
 std::string GPStoStr(std::string nmea) {
   if (!nmea.empty()) {
-    if (isgnrmc(nmea) && parseGNRMC(nmea, &latestLat, &latestLon, &latestSpeed, &latestDir)) {
+    if (issatc(nmea,"$GNRMC") && parseGNRMC(nmea, &latestLat, &latestLon, &latestSpeed, &latestDir)) {
       latestGNRMC = nmea;
       latestGNRMCchanged = true;
       knotsToMps(&latestSpeed);
