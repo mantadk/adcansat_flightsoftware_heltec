@@ -91,6 +91,8 @@ std::string GPStoStr(const std::string& nmea) {
       return nmea;
     } else if (issatc(nmea, "$GLGSV")) {
       return nmea;
+    } else if (issatc(nmea, "$GNGSV")) {
+      return nmea;
     } else {
       return "Not NMEA:" + nmea;
     }
