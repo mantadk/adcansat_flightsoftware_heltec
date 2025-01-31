@@ -17,6 +17,7 @@ std::string latestGPGSV = "";
 std::string latestGLGSV = "";
 std::string latestGNRMC = "";
 std::string latestSatsInView = "";
+std::string latestMessage = "";
 
 void setup() {
   Serial.begin(9600, SERIAL_8N1, U0RXD, U0TXD);
@@ -65,24 +66,12 @@ String hrfr() {
   }
 }
 
-
-std::string toTransmit = "";
 void drawFreq() {
   display.setFont(ArialMT_Plain_16);
   display.drawString(0, 0, hrfr());
   display.drawLine(0, 20, 128, 20);
   display.setFont(ArialMT_Plain_10);
-  if (latestSatsInView != "")
-    toTransmit = latestSatsInView;
-  else if (latestGNRMC != "")
-    toTransmit = latestGNRMC;
-  else if (latestGLGSV != "")
-    toTransmit = latestGLGSV;
-  else if (latestGPGSV != "")
-    toTransmit = latestGPGSV;
-  else
-    toTransmit = "Check GPS connection I guess";
-  display.drawString(0, 44, toTransmit.c_str());
+  display.drawString(0, 44, latestMessage.c_str());
 }
 
 std::string GPStoStr(std::string nmea) {
@@ -194,6 +183,7 @@ void LoRaSenderTask(void* parameter) {
     if (!messageQueue.empty() && lora_idle) {
       queueMutex.lock();
       std::string message = messageQueue.front();
+      latestMessage = message;
       messageQueue.pop();
       queueMutex.unlock();
 
@@ -201,7 +191,6 @@ void LoRaSenderTask(void* parameter) {
       txNumber += 0.01;
       char txpacket[256];
       snprintf(txpacket, sizeof(txpacket), "%.2f - %s", txNumber, message.c_str());
-
       lora_idle = false;
       Radio.Send((uint8_t*)txpacket, strlen(txpacket));
     }
