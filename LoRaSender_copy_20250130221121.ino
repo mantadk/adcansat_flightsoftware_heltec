@@ -123,14 +123,9 @@ std::string GPStoStr(std::string nmea) {
 void loop() {
   std::string dataJustRead = readLineFromSerial();
   if (dataJustRead != "")
-    std::string ttrs = GPStoStr(dataJustRead).c_str();
+    SENDDATA(GPStoStr(dataJustRead));
   display.clear();
   drawFreq();
-
-  
-  if (ttrs == "")
-    ttrs = toTransmit;
-  SENDDATA(toTransmit);
   display.setFont(ArialMT_Plain_10);
   display.drawString(0, 24, txpacket);
   display.display();
