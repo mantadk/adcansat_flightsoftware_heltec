@@ -13,7 +13,6 @@ static SSD1306Wire display(0x3c, 500000, SDA_OLED, SCL_OLED, GEOMETRY_128_64, RS
 void OnTxDone(void);
 void OnTxTimeout(void);
 
-std::string latestSerial = "";
 std::string latestGPGSV = "";
 std::string latestGLGSV = "";
 std::string latestGNRMC = "";
@@ -85,27 +84,24 @@ void drawFreq() {
     toTransmit = latestGLGSV;
   else if (latestGPGSV != "")
     toTransmit = latestGPGSV;
-  else if (latestSerial != "")
-    toTransmit = latestSerial;
   else
     toTransmit = "Check GPS connection I guess";
   display.drawString(0, 44, toTransmit.c_str());
 }
 
-std::string GPStoStr() {
-  std::string received = latestSerial;
-  if (!received.empty()) {
-    if (isgnrmc(received) && parseGNRMC(received, &latestLat, &latestLon, &latestSpeed, &latestDir)) {
-      latestGNRMC = received;
+std::string GPStoStr(std::string nmea) {
+  if (!nmea.empty()) {
+    if (isgnrmc(nmea) && parseGNRMC(nmea, &latestLat, &latestLon, &latestSpeed, &latestDir)) {
+      latestGNRMC = nmea;
       latestGNRMCchanged = true;
       knotsToMps(&latestSpeed);
     }
-    if (issatc(received, "$GPGSV")) {
-      latestGPGSV = received;
+    if (issatc(nmea, "$GPGSV")) {
+      latestGPGSV = nmea;
       latestGPGSVchanged = true;
     }
-    if (issatc(received, "$GLGSV")) {
-      latestGLGSV = received;
+    if (issatc(nmea, "$GLGSV")) {
+      latestGLGSV = nmea;
       latestGLGSVchanged = true;
     }
   }
@@ -127,11 +123,11 @@ std::string GPStoStr() {
 void loop() {
   std::string dataJustRead = readLineFromSerial();
   if (dataJustRead != "")
-    latestSerial = dataJustRead;
+    std::string ttrs = GPStoStr(dataJustRead).c_str();
   display.clear();
   drawFreq();
 
-  std::string ttrs = GPStoStr().c_str();
+  
   if (ttrs == "")
     ttrs = toTransmit;
   SENDDATA(toTransmit);

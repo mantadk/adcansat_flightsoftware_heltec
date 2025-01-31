@@ -1,3 +1,4 @@
+#include "umbrella.hpp"
 
 std::string readLineFromSerial() {
   static std::string buffer;
@@ -17,7 +18,6 @@ std::string readLineFromSerial() {
     // Return incomplete line after timeout (optional)
     std::string line = buffer;
     buffer.clear();
-    latestSerial = line;
     return line;
   }
   return "";  // No complete line yet
