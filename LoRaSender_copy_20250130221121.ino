@@ -98,7 +98,7 @@ std::string GPStoStr(std::string nmea) {
     else
     {
       display.setFont(ArialMT_Plain_10);
-      display.drawString(0, 24, nmea);
+      display.drawString(0, 24, nmea.c_str());
       return "Not NMEA";
     }
   }
