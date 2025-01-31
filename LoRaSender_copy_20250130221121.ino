@@ -97,14 +97,16 @@ std::string GPStoStr(const std::string& nmea) {
   }
   return "No NMEA";
 }
-
+std::string latestreading = "";
 void loop() {
+  display.clear();
   std::string dataJustRead = readLineFromSerial();
   display.setFont(ArialMT_Plain_10);
-  display.drawString(0, 24, dataJustRead.c_str());
-  if (dataJustRead != "")
+  display.drawString(0, 24, latestreading.c_str());
+  if (dataJustRead != "") {
+    latestreading = dataJustRead;
     SENDDATA(GPStoStr(dataJustRead));
-  display.clear();
+  }
   drawFreq();
   display.display();
   Radio.IrqProcess();
