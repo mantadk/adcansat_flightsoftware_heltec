@@ -97,10 +97,10 @@ std::string GPStoStr(std::string nmea) {
     }
     else
     {
-      return "Invalid Serial Reading";
+      return "Not NMEA";
     }
   }
-  return "No GPS";
+  return "No NMEA";
 }
 
 void loop() {
