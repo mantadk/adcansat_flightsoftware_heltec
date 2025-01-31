@@ -108,8 +108,10 @@ std::string GPStoStr(const std::string& nmea) {
       }
       return "Invalid GNVTG";
     } else if (issatc(nmea, "$GNGGA")) {
-      double lat, lon, alt, cnt;
-      if (bool parseGNGGA(nmea, &lat, &lon, &alt, &cnt)) {
+      double lat, lon, alt;
+      int cnt;
+      if (parseGNGGA(nmea, &lat, &lon, &alt, &cnt)) {
+        std::ostringstream returnval;
         returnval << "lat:" << std::fixed << std::setprecision(8) << lat
                   << ";lon:" << std::fixed << std::setprecision(8) << lon
                   << ";alt:" << std::fixed << std::setprecision(2) << alt
