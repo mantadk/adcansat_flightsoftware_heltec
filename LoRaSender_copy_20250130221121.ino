@@ -97,6 +97,8 @@ std::string GPStoStr(std::string nmea) {
     }
     else
     {
+      display.setFont(ArialMT_Plain_10);
+      display.drawString(0, 24, nmea);
       return "Not NMEA";
     }
   }
@@ -109,8 +111,6 @@ void loop() {
     SENDDATA(GPStoStr(dataJustRead));
   display.clear();
   drawFreq();
-  display.setFont(ArialMT_Plain_10);
-  display.drawString(0, 24, txpacket);
   display.display();
   Radio.IrqProcess();
 }
