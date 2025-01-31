@@ -194,7 +194,7 @@ void LoRaSenderTask(void* parameter) {
       lora_idle = false;
       Radio.Send((uint8_t*)txpacket, strlen(txpacket));
     }
-    vTaskDelay(pdMS_TO_TICKS(1000));  // Delay 1 second
+    vTaskDelay(pdMS_TO_TICKS(DELAYBETWEENTRANSMITS));  // Delay
   }
 }
 

@@ -33,7 +33,7 @@
 #define U0TXD 43
 
 #define STACK_SIZE 4096
-
+#define DELAYBETWEENTRANSMITS 100
 
 
 std::string readLineFromSerial();
