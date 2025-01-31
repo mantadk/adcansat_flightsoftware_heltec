@@ -17,10 +17,6 @@ std::string latestGPGSV = "";
 std::string latestGLGSV = "";
 std::string latestGNRMC = "";
 std::string latestSatsInView = "";
-bool latestGPGSVchanged = false;
-bool latestGLGSVchanged = false;
-bool latestGNRMCchanged = false;
-double latestLat, latestLon, latestSpeed, latestDir;
 
 void setup() {
   Serial.begin(9600, SERIAL_8N1, U0RXD, U0TXD);
@@ -91,31 +87,24 @@ void drawFreq() {
 
 std::string GPStoStr(std::string nmea) {
   if (!nmea.empty()) {
-    if (issatc(nmea,"$GNRMC") && parseGNRMC(nmea, &latestLat, &latestLon, &latestSpeed, &latestDir)) {
-      latestGNRMC = nmea;
-      latestGNRMCchanged = true;
-      knotsToMps(&latestSpeed);
+    if (issatc(nmea, "$GNRMC")) {
+      double latestLat, latestLon, latestSpeed, latestDir;
+      if (parseGNRMC(nmea, &latestLat, &latestLon, &latestSpeed, &latestDir)) {
+        knotsToMps(&latestSpeed);
+        std::ostringstream returnval;
+        returnval << "lat:" << std::fixed << std::setprecision(8) << latestLat
+                  << ";lon:" << std::fixed << std::setprecision(8) << latestLon
+                  << ";spd:" << std::fixed << std::setprecision(2) << latestSpeed
+                  << ";dir:" << static_cast<int>(std::round(latestDir));
+        return returnval.str();
+      }
     }
     if (issatc(nmea, "$GPGSV")) {
       latestGPGSV = nmea;
-      latestGPGSVchanged = true;
     }
     if (issatc(nmea, "$GLGSV")) {
       latestGLGSV = nmea;
-      latestGLGSVchanged = true;
     }
-  }
-  if (latestGNRMCchanged * latestGLGSVchanged * latestGPGSVchanged) {
-    latestGNRMCchanged = false;
-    latestGLGSVchanged = false;
-    latestGPGSVchanged = false;
-    std::ostringstream returnval;
-    returnval << satsinview(latestGPGSV, latestGLGSV)
-              << ";lat:" << std::fixed << std::setprecision(8) << latestLat
-              << ";lon:" << std::fixed << std::setprecision(8) << latestLon
-              << ";spd:" << std::fixed << std::setprecision(2) << latestSpeed
-              << ";dir:" << static_cast<int>(std::round(latestDir));
-    return returnval.str();
   }
   return "No GPS";
 }
@@ -123,7 +112,7 @@ std::string GPStoStr(std::string nmea) {
 void loop() {
   std::string dataJustRead = readLineFromSerial();
   if (dataJustRead != "")
-    SENDDATA(dataJustRead);
+    SENDDATA(GPStoStr(dataJustRead));
   display.clear();
   drawFreq();
   display.setFont(ArialMT_Plain_10);
@@ -170,73 +159,6 @@ std::string satsinview(std::string gpsSentence, std::string glonassSentence) {
   return result.str();
 }
 
-bool parseGNRMC(const std::string& gnrmc, double* latitude, double* longitude, double* speed, double* direction) {
-  // Split the sentence into fields
-  std::istringstream stream(gnrmc);
-  std::string field;
-  int fieldIndex = 0;
-
-  std::string latField, latDirection, lonField, lonDirection, speedField, directionField;
-
-  while (std::getline(stream, field, ',')) {
-    fieldIndex++;
-    switch (fieldIndex) {
-      case 4:  // Latitude field
-        latField = field;
-        break;
-      case 5:  // Latitude direction (N/S)
-        latDirection = field;
-        break;
-      case 6:  // Longitude field
-        lonField = field;
-        break;
-      case 7:  // Longitude direction (E/W)
-        lonDirection = field;
-        break;
-      case 8:  // Speed field (knots)
-        speedField = field;
-        break;
-      case 9:  // Direction field (degrees)
-        directionField = field;
-        break;
-    }
-  }
-
-  // Validate extracted fields
-  if (latField.empty() || lonField.empty() || latDirection.empty() || lonDirection.empty()) {
-    return false;  // Missing fields
-  }
-
-  try {
-    // Convert latitude to decimal degrees
-    double latDegrees = std::stod(latField.substr(0, 2));
-    double latMinutes = std::stod(latField.substr(2));
-    *latitude = latDegrees + (latMinutes / 60.0);
-    if (latDirection == "S") {
-      *latitude = -*latitude;
-    }
-
-    // Convert longitude to decimal degrees
-    double lonDegrees = std::stod(lonField.substr(0, 3));
-    double lonMinutes = std::stod(lonField.substr(3));
-    *longitude = lonDegrees + (lonMinutes / 60.0);
-    if (lonDirection == "W") {
-      *longitude = -*longitude;
-    }
-
-    // Parse speed (knots)
-    *speed = speedField.empty() ? 0.0 : std::stod(speedField);
-
-    // Parse direction (degrees)
-    *direction = directionField.empty() ? 0.0 : std::stod(directionField);
-
-  } catch (const std::exception& e) {
-    return false;  // Conversion error
-  }
-
-  return true;  // Successfully parsed
-}
-
 void knotsToMps(double* spdtc) {
   *spdtc = *spdtc * 0.514444;
 }
@@ -259,12 +181,12 @@ std::queue<std::string> messageQueue;
 std::mutex queueMutex;
 
 bool SENDDATA(const std::string& datatosend) {
-    std::lock_guard<std::mutex> lock(queueMutex);
-    if (messageQueue.size() * sizeof(std::string) >= STACK_SIZE) {
-        return false;
-    }
-    messageQueue.push(datatosend);
-    return true;
+  std::lock_guard<std::mutex> lock(queueMutex);
+  if (messageQueue.size() * sizeof(std::string) >= STACK_SIZE) {
+    return false;
+  }
+  messageQueue.push(datatosend);
+  return true;
 }
 
 void LoRaSenderTask(void* parameter) {
@@ -291,7 +213,7 @@ void startQueueingTask() {
   xTaskCreatePinnedToCore(
     LoRaSenderTask,  // Task function
     "LoRaSender",    // Name of the task
-    STACK_SIZE,            // Stack size
+    STACK_SIZE,      // Stack size
     NULL,            // Task parameter
     1,               // Priority
     NULL,            // Task handle
