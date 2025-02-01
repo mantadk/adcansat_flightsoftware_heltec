@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <queue>
 #include <mutex>
+#include <chrono>
 
 #define RF_FREQUENCY 868000000  // Hz
 
@@ -32,8 +33,17 @@
 #define U0RXD 44
 #define U0TXD 43
 
+#define VIRTUALINPUTRECEIVE 37
+#define VIRTUALINPUTLINE 45
+#define VIRTUALINPUTCLOCK 46
+#define VIRTUALINPUTNOTIFY 42
+
 #define STACK_SIZE 4096
 #define DELAYBETWEENTRANSMITS 100
+
+void init_virtual_uart();
+void send_to_virtual_uart(const std::string& message);
+void readline_from_virtual_uart(std::string* line); //not uart related, lazy to change function name
 
 std::string readLineFromSerial();
 
@@ -44,3 +54,4 @@ bool parseGNGLL(const std::string& gngll, double* latitude, double* longitude);
 bool parseGNVTG(const std::string& gnvtg, double* course, double* speed);
 bool parseGNGGA(const std::string& gngga, double* latitude, double* longitude, double* altitude, int* numSatellites);
 bool parseGNTXT(const std::string& gntxt, std::string* messageContent);
+

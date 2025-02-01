@@ -22,6 +22,8 @@ std::string latestMessage = "";
 void setup() {
   Serial.begin(9600, SERIAL_8N1, U0RXD, U0TXD);
   delay(1000);
+  // init_virtual_uart();
+  // delay(1000);
 
   Mcu.begin(HELTEC_BOARD, SLOW_CLK_TPYE);
   txNumber = 0;
@@ -70,7 +72,7 @@ void drawFreq() {
   display.drawString(0, 0, hrfr());
   display.drawLine(0, 20, 128, 20);
   display.setFont(ArialMT_Plain_10);
-  display.drawString(0, 44, latestMessage.c_str());
+  display.drawString(0, 54, latestMessage.c_str());
 }
 
 std::string GPStoStr(const std::string& nmea) {
@@ -136,15 +138,22 @@ std::string GPStoStr(const std::string& nmea) {
   }
   return "No Data";
 }
-std::string latestreading = "";
+std::string latestreading = "",latestreading2 = "";
 void loop() {
   display.clear();
   std::string dataJustRead = readLineFromSerial();
   display.setFont(ArialMT_Plain_10);
-  display.drawString(0, 24, latestreading.c_str());
   if (dataJustRead != "") {
     latestreading = dataJustRead;
+    display.drawString(0, 24, latestreading.c_str());
     SENDDATA(GPStoStr(dataJustRead));
+  }
+  std::string dataJustRead2 = "";
+  readline_from_virtual_uart(&dataJustRead2); //not uart related, lazy to change function name
+  if (dataJustRead2 != "") {
+    latestreading2 = dataJustRead2;
+    display.drawString(0, 39, latestreading.c_str());
+    SENDDATA(dataJustRead2);
   }
   drawFreq();
   display.display();
