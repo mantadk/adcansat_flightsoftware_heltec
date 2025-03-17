@@ -40,9 +40,18 @@ void setup() {
   delay(1000);
   display.init();
   delay(1000);
-
+  pinMode(VIRTUAL_NOTIFY_LINE, INPUT);
+  pinMode(VIRTUAL_DATA_LINE, INPUT);
+  pinMode(VIRTUAL_CLOCK_LINE, INPUT);
+  pinMode(VIRTUAL_ENABLE_LINE, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
   startQueueingTask();
-  delay(1000);
+  delay(500);
+  while (digitalRead(VIRTUAL_NOTIFY_LINE) != HIGH)
+    ;
+  digitalWrite(LED_BUILTIN, LOW);
+  SENDDATA("Setup done, running loop");
 }
 void VextON(void) {
   pinMode(Vext, OUTPUT);
@@ -123,9 +132,8 @@ std::string GPStoStr(const std::string& nmea) {
       return "Invalid GNGGA;" + nmea;
     } else if (issatc(nmea, "$GNTXT")) {
       std::string msg;
-      if (parseGNTXT(nmea, &msg))
-      {
-        return "msg:"+msg;
+      if (parseGNTXT(nmea, &msg)) {
+        return "msg:" + msg;
       }
       return "Invalid GNTXT;" + nmea;
     } else if (issatc(nmea, "$GNGSA")) {
@@ -138,23 +146,27 @@ std::string GPStoStr(const std::string& nmea) {
   }
   return "No Data";
 }
-std::string latestreading = "",latestreading2 = "";
+std::string latestreading = "", latestreading2 = "";
 void loop() {
   display.clear();
+  digitalWrite(LED_BUILTIN, HIGH);
   std::string dataJustRead = readLineFromSerial();
   display.setFont(ArialMT_Plain_10);
   if (dataJustRead != "") {
+    digitalWrite(LED_BUILTIN, LOW);
     latestreading = dataJustRead;
     display.drawString(0, 24, latestreading.c_str());
     SENDDATA(GPStoStr(dataJustRead));
   }
-  std::string dataJustRead2 = "";
-  readline_from_virtual_uart(&dataJustRead2); //not uart related, lazy to change function name
-  if (dataJustRead2 != "") {
-    latestreading2 = dataJustRead2;
-    display.drawString(0, 39, latestreading.c_str());
-    SENDDATA(dataJustRead2);
-  }
+  // std::string dataJustRead2 = "";
+  // SENDDATA("Reading from virtual uart");
+  // int res = readline_from_virtual_uart(&dataJustRead2);  //not uart related, lazy to change function name
+  // if (res) SENDDATA("No data on VUART");
+  // if (dataJustRead2 != "") {
+  //   latestreading2 = dataJustRead2;
+  //   display.drawString(0, 39, latestreading.c_str());
+  //   SENDDATA(dataJustRead2);
+  // }
   drawFreq();
   display.display();
   Radio.IrqProcess();

@@ -28,22 +28,22 @@
 #define LORA_IQ_INVERSION_ON false
 
 #define RX_TIMEOUT_VALUE 1000
-#define BUFFER_SIZE 128  // Define the payload size here
+#define BUFFER_SIZE 1024  // Define the payload size here
 
 #define U0RXD 44
 #define U0TXD 43
 
-#define VIRTUALINPUTRECEIVE 37
-#define VIRTUALINPUTLINE 45
-#define VIRTUALINPUTCLOCK 46
-#define VIRTUALINPUTNOTIFY 42
+#define VIRTUAL_DATA_LINE 37
+#define VIRTUAL_CLOCK_LINE 46
+#define VIRTUAL_ENABLE_LINE 45
+#define VIRTUAL_NOTIFY_LINE 42
 
 #define STACK_SIZE 4096
 #define DELAYBETWEENTRANSMITS 100
 
 void init_virtual_uart();
 void send_to_virtual_uart(const std::string& message);
-void readline_from_virtual_uart(std::string* line); //not uart related, lazy to change function name
+int readline_from_virtual_uart(std::string* line); //not uart related, lazy to change function name
 
 std::string readLineFromSerial();
 
@@ -55,3 +55,4 @@ bool parseGNVTG(const std::string& gnvtg, double* course, double* speed);
 bool parseGNGGA(const std::string& gngga, double* latitude, double* longitude, double* altitude, int* numSatellites);
 bool parseGNTXT(const std::string& gntxt, std::string* messageContent);
 
+bool SENDDATA(const std::string& datatosend);
