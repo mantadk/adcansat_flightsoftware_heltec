@@ -41,9 +41,10 @@
 #define STACK_SIZE 4096
 #define DELAYBETWEENTRANSMITS 100
 
-void init_virtual_uart();
-void send_to_virtual_uart(const std::string& message);
-int readline_from_virtual_uart(std::string* line); //not uart related, lazy to change function name
+// void init_virtual_uart();
+// void send_to_virtual_uart(const std::string& message);
+// int readline_from_virtual_uart(std::string* line); //not uart related, lazy to change function name
+std::string readVUARTString();
 
 std::string readLineFromSerial();
 

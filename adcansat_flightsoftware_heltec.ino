@@ -48,10 +48,14 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
   startQueueingTask();
   delay(500);
-  while (digitalRead(VIRTUAL_NOTIFY_LINE) != HIGH)
-    ;
+  
   digitalWrite(LED_BUILTIN, LOW);
-  SENDDATA("Setup done, running loop");
+  SENDDATA("Heltec setup done, waiting for PICO");
+  std::string picoSetupDone = readVUARTString();
+  SENDDATA(picoSetupDone);
+  delay(100);
+  SENDDATA("Running loop");
+  delay(100);
 }
 void VextON(void) {
   pinMode(Vext, OUTPUT);
@@ -84,7 +88,7 @@ void drawFreq() {
   display.drawString(0, 54, latestMessage.c_str());
 }
 
-std::string GPStoStr(const std::string& nmea) {
+std::string GPStoStr(const std::string& nmea, int* validdata) {
   if (!nmea.empty()) {
     if (issatc(nmea, "$GNRMC")) {
       double lat, lon, spd, cog;
@@ -95,8 +99,10 @@ std::string GPStoStr(const std::string& nmea) {
                   << ";lon:" << std::fixed << std::setprecision(8) << lon
                   << ";spd:" << std::fixed << std::setprecision(2) << spd
                   << ";cog:" << static_cast<int>(std::round(cog));
+        *validdata=1;
         return returnval.str();
       }
+      *validdata=0;
       return "Invalid GNRMC;" + nmea;
     } else if (issatc(nmea, "$GNGLL")) {
       double lat, lon;
@@ -104,8 +110,10 @@ std::string GPStoStr(const std::string& nmea) {
         std::ostringstream returnval;
         returnval << "lat:" << std::fixed << std::setprecision(8) << lat
                   << ";lon:" << std::fixed << std::setprecision(8) << lon;
+        *validdata=1;
         return returnval.str();
       }
+      *validdata=0;
       return "Invalid GNGLL;" + nmea;
 
     } else if (issatc(nmea, "$GNVTG")) {
@@ -115,8 +123,10 @@ std::string GPStoStr(const std::string& nmea) {
         std::ostringstream returnval;
         returnval << "cog:" << std::fixed << std::setprecision(8) << cog
                   << ";spd:" << std::fixed << std::setprecision(8) << spd;
+        *validdata=1;
         return returnval.str();
       }
+      *validdata=0;
       return "Invalid GNVTG;" + nmea;
     } else if (issatc(nmea, "$GNGGA")) {
       double lat, lon, alt;
@@ -127,23 +137,31 @@ std::string GPStoStr(const std::string& nmea) {
                   << ";lon:" << std::fixed << std::setprecision(8) << lon
                   << ";alt:" << std::fixed << std::setprecision(2) << alt
                   << ";cnt:" << cnt;
+        *validdata=1;
         return returnval.str();
       }
+      *validdata=0;
       return "Invalid GNGGA;" + nmea;
     } else if (issatc(nmea, "$GNTXT")) {
       std::string msg;
       if (parseGNTXT(nmea, &msg)) {
+        *validdata=1;
         return "msg:" + msg;
       }
+      *validdata=0;
       return "Invalid GNTXT;" + nmea;
     } else if (issatc(nmea, "$GNGSA")) {
+      *validdata=0;
       return "NP-GNGSA";
     } else if (issatc(nmea, "$GPGSV") + issatc(nmea, "$GNGSV") + issatc(nmea, "$GLGSV")) {
+      *validdata=0;
       return "NP-GXGSV";
     } else {
+      *validdata=0;
       return "Not NMEA;" + nmea;
     }
   }
+  *validdata=0;
   return "No Data";
 }
 std::string latestreading = "", latestreading2 = "";
@@ -154,19 +172,22 @@ void loop() {
   display.setFont(ArialMT_Plain_10);
   if (dataJustRead != "") {
     digitalWrite(LED_BUILTIN, LOW);
-    latestreading = dataJustRead;
+    latestreading = "gps:"+dataJustRead;
     display.drawString(0, 24, latestreading.c_str());
-    SENDDATA(GPStoStr(dataJustRead));
+    int datavalid = 0;
+    std::string gpsdata = GPStoStr(dataJustRead, &datavalid);
+    if (datavalid)
+    SENDDATA("gps:"+gpsdata);
   }
-  // std::string dataJustRead2 = "";
+  std::string dataJustRead2 = readVUARTString();
   // SENDDATA("Reading from virtual uart");
   // int res = readline_from_virtual_uart(&dataJustRead2);  //not uart related, lazy to change function name
   // if (res) SENDDATA("No data on VUART");
-  // if (dataJustRead2 != "") {
-  //   latestreading2 = dataJustRead2;
-  //   display.drawString(0, 39, latestreading.c_str());
-  //   SENDDATA(dataJustRead2);
-  // }
+  if (dataJustRead2 != "") {
+    latestreading2 = dataJustRead2;
+    display.drawString(0, 39, latestreading.c_str());
+    SENDDATA(dataJustRead2);
+  }
   drawFreq();
   display.display();
   Radio.IrqProcess();
